@@ -1,0 +1,54 @@
+{% extends "mail/layout.html" %}
+{% load static %}
+
+{% block body %}
+    <h2>{{ user.email }}</h2>
+
+    <div>
+        <button class="btn btn-sm btn-outline-primary" id="inbox">Inbox</button>
+        <button class="btn btn-sm btn-outline-primary" id="compose">Compose</button>
+        <button class="btn btn-sm btn-outline-primary" id="sent">Sent</button>
+        <button class="btn btn-sm btn-outline-primary" id="archived">Archived</button>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a>
+    </div>
+    <hr>
+
+    <div id="messages">
+    </div>
+
+    <!-- email section -->
+    <div id="emails-view">
+    </div>
+
+    <div id="single-email-view">
+        <div><b>Sender:</b><span id="email-sender" style="padding-left: 10px;"></span></div>
+        <div><b>Recipients:</b><span id="email-recipients" style="padding-left: 10px;"></span></div>
+        <div><b>Subject:</b><span id="email-subject" style="padding-left: 10px;"></span></div>
+        <div><b>Timestamp:</b><span id="email-timestamp" style="padding-left: 10px;"></span></div>
+        <button id="button-read" class="btn btn-sm btn-outline-primary">Unread</button>
+        <hr>
+        <p id="email-body"></p>
+    </div>
+
+    <div id="compose-view">
+        <h3>New Email</h3>
+        <form id="compose-form">
+            <div class="form-group">
+                From: <input disabled class="form-control" value="{{ user.email }}">
+            </div>
+            <div class="form-group">
+                To: <input id="compose-recipients" class="form-control" placeholder="Recipients">
+            </div>
+            <div class="form-group">
+                <input class="form-control" id="compose-subject" placeholder="Subject">
+            </div>
+            <textarea class="form-control" id="compose-body" placeholder="Body"></textarea>
+            <input type="submit" class="btn btn-primary"/>
+        </form>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'mail/inbox.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'mail/styles.css'%}">
+{% endblock %}
