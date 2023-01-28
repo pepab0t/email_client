@@ -41,7 +41,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (response.ok){
           return response.json();
         } else {
-          return response.json();
+          document.querySelector('#messages').append(respose.json().error)
+          throw new Error(`Invalid response: ${response.json().error}`)
         }
     })
     .then((result) => {
@@ -88,18 +89,39 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
   
-
   // fetch emails
   fetch(`${url}/emails/${mailbox}`)
   .then( response => response.json() )
   .then(result => {
     result.forEach(element => {
+      const itemDiv = document.createElement('div');
+      itemDiv.classList.add("flex")
+
       const emailDiv = document.createElement('div');
       emailDiv.innerHTML = `
-      <div><b>${element.recipients}</b></div>
+      <div><b>${mailbox==='sent'?element.recipients:element.sender}</b></div>
       <div>${element.subject}</div>
       <div>${element.timestamp}</div>
       `;
+
+      let archiveButton = undefined;
+      if (mailbox==='inbox'){
+        archiveButton = document.createElement('button');
+        archiveButton.innerHTML = "Archive";
+        archiveButton.onclick = () => {
+          markReadArchive(element.id, 'archived', true, () => load_mailbox(mailbox));
+        };
+        archiveButton.classList.add('btn', 'btn-sm', 'btn-outline-primary');
+      }
+      else if (mailbox==='archive') {
+        archiveButton = document.createElement('button');
+        archiveButton.innerHTML = "Unarchive";
+        archiveButton.onclick = () => {
+          markReadArchive(element.id, 'archived', false, () => load_mailbox(mailbox));
+        };
+        archiveButton.classList.add('btn', 'btn-sm', 'btn-outline-primary');
+      }
+
 
       emailDiv.classList.add("email-item");
 
@@ -114,7 +136,11 @@ function load_mailbox(mailbox) {
         viewEmail(element.id);
       };
 
-      emailView.append(emailDiv);
+      itemDiv.append(emailDiv);
+      if (archiveButton) {
+        itemDiv.append(archiveButton);
+      }
+      emailView.append(itemDiv);
     });
   })
 }
@@ -125,8 +151,8 @@ function removeMessages() {
   
   if (messages.innerHTML){
     messages.innerHTML = '';
+    
   };
-  
 }
 
 function viewEmail(email_id) {
@@ -153,25 +179,44 @@ function viewEmail(email_id) {
     buttonRead.onclick = () => {
       markReadArchive(email_id, 'read', false);
     };
+    // to-do
+    document.querySelector('#button-reply').onclick = () => {
+      compose_email();
+      document.querySelector('#compose-recipients').value = email.sender;
+      const newSubject = email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`;
+      document.querySelector('#compose-subject').value = newSubject;
+      document.querySelector('#compose-body').value = `*****\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}\n*****\n`
+    };
   })
   .catch( e => console.log(e));
 }
 
-function markReadArchive(email_id, feature, status) {
-  if (!['read', 'archived'].includes(feature.toLowerCase())){
+function markReadArchive(email_id, feature, status, afterFn = undefined) {
+  let payload = {
+    method: "PUT"
+  }
+
+  if (feature == 'read') {
+    payload.body = JSON.stringify({
+      read: status
+    })
+  } else if (feature === 'archived') {
+    payload.body = JSON.stringify({
+      archived: status
+    })
+  } else {
     alert(`Page error, invalid option ${feature}`)
     return null;
   }
 
-  fetch(`${url}/emails/${email_id}`, {
-    method: "PUT",
-    body: JSON.stringify({
-      read: feature === 'read' ? status : undefined,
-      archived: feature === 'archived' ? status : undefined,
-    })
+  fetch(`${url}/emails/${email_id}`, payload)
+  // .then(response => response.json())
+  .then(result => {
+    console.log(result);
+    if (afterFn) {
+      afterFn();
+    }
   })
-  .then(response => response.json())
-  .then(result => console.log(result))
   .catch( e => console.log(e))
 
 }

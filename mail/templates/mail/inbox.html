@@ -26,6 +26,7 @@
         <div><b>Subject:</b><span id="email-subject" style="padding-left: 10px;"></span></div>
         <div><b>Timestamp:</b><span id="email-timestamp" style="padding-left: 10px;"></span></div>
         <button id="button-read" class="btn btn-sm btn-outline-primary">Unread</button>
+        <button id="button-reply" class="btn btn-sm btn-outline-primary">Reply</button>
         <hr>
         <p id="email-body"></p>
     </div>
@@ -43,7 +44,7 @@
                 <input class="form-control" id="compose-subject" placeholder="Subject">
             </div>
             <textarea class="form-control" id="compose-body" placeholder="Body"></textarea>
-            <input type="submit" class="btn btn-primary"/>
+            <input type="submit" class="btn btn-primary" value="Send"/>
         </form>
     </div>
 {% endblock %}
